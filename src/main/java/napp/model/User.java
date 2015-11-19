@@ -4,16 +4,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
 /**
  * Created by humblehound on 13.11.15.
  */
 @Entity
-@Table(name="users")
+@Table(name="user")
 public class User implements UserDetails {
 
     @Id
@@ -22,6 +19,9 @@ public class User implements UserDetails {
 
     @Column(unique = true)
     private String login;
+
+//    @OneToMany(mappedBy="note")
+//    private Set<Note> notes;
 
     private String password;
 
