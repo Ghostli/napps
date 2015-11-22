@@ -2,6 +2,7 @@ package napp.controllers;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import javafx.beans.property.StringProperty;
+import napp.dao.NoteDAO;
 import napp.dao.UserDAO;
 import napp.model.User;
 import napp.security.LoginService;
@@ -40,14 +41,31 @@ public class UserController {
 
     @RequestMapping(value = "/register", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public Wrapper registerDefault(@RequestParam("login") String login, @RequestParam("password") String password){
-        User user = new User(login, password);
+    public ResponseEntity<Object> registerDefault(@RequestParam("login") String login, @RequestParam("password") String password){
+        User user = userDAO.findByLogin(login);
+        if(user != null){
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        }
+        user = new User(login, password);
         try{
             userDAO.save(user);
+            return new ResponseEntity<>(new Wrapper(user.getId()), HttpStatus.OK);
         }catch (Exception ex){
-            return null;
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
         }
-        return new Wrapper(user.getId());
+    }
+
+    @RequestMapping(value = "/unregister", method = RequestMethod.POST, produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<Object> unregisterDefault(@RequestParam("userId") Long userId){
+        User user = userDAO.findOne(userId);
+        try{
+            noteDAO.deleteNotesByUser(user);
+            userDAO.delete(user);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }catch (Exception ex){
+            return new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE);
+        }
     }
 
     public class Wrapper {
@@ -65,6 +83,9 @@ public class UserController {
 
     @Autowired
     private UserDAO userDAO;
+
+    @Autowired
+    private NoteDAO noteDAO;
 
     @Autowired
     private LoginService loginService;
